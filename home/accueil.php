@@ -8,7 +8,7 @@ require_once 'main.php';
 <br />
 <div class="container" style="margin-left:auto;margin-right:auto;">
     <!-- <h5>Liste des <?php echo $_SESSION['countRows']; ?> dernières news</h5> -->
-    <p>Il y a actuellement <span class="badge badge-success"><?php echo $_SESSION['countRows']; ?></span> news. En voici la liste :</p>
+    <p>Bonjour <?php echo $account_name; ?> ! Il y a actuellement <span class="badge badge-success"><?php echo $_SESSION['countRows']; ?></span> news. En voici la liste :</p>
     <?php foreach ($newsPage as $key => $value) {
         $text = $newsPage[$key]->{'contenu'};
         $textReduit = debutTexte($text, 190);
@@ -51,6 +51,11 @@ require_once 'main.php';
     </li>
   </ul>
 </nav>
+
+<!-- <?php 
+$paginator->render();
+?> -->
+
 <?php
 
 require_once 'footer.php';

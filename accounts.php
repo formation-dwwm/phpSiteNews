@@ -47,24 +47,24 @@ if (isset($_SESSION['REQUEST_URI']) === '/tpnews/register.php') {
 
 // Controle de la validité de EMAIL unique - TOKEN de confirmation url
 function emailCheck($email, $key, $bool) {
+  // Supprimer tous les caractères illégaux de l'email
   if (empty($email)) {
     $echecEmail = '<span style="color:red;">Veuillez remplir votre email</span>';
     $emailExist = '';
   } else if (!empty($email)) {
-    if (strlen($email) < 5 || strlen($email) > 255) {
-      $echecEmail = '<span style="color:red;">5 caractères requis min et 255 max.</span>';
+    $newEmail = filter_var($email, FILTER_SANITIZE_EMAIL);
+      $echecEmail = '<span style="color:red;">Email invalide</span>';
       $emailExist = '';
-    } else {
+    if (filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
       $echecEmail = '';
-      if ($bool === true && $key == 'exist') {
+    } else if ($bool === true && $key == 'exist') {
         $emailExist = '<span style="color:blue;">Votre email existe déjà !</span>';
         // $emailExist = '';              // Possibilité d'un echec silencieux avec fail sur confirm par url
-      } else if ($bool === false && $key == 'valid') {
-        $emailExist = '<span style="color:blue;">Votre email n\'existe pas !</span>';
-        // $emailExist = '';              // Possibilité d'un echec silencieux avec fail sur confirm par url
-      } else {
-        $emailExist = '';
-      }
+    } else if ($bool === false && $key == 'valid') {
+      $emailExist = '<span style="color:blue;">Votre email n\'existe pas !</span>';
+      // $emailExist = '';              // Possibilité d'un echec silencieux avec fail sur confirm par url
+    } else {
+      $emailExist = '';
     }
   }
   $arr = array(
@@ -112,7 +112,7 @@ function usernameCheck($name, $key, $bool) {
   return $arr;
 }
 
-// Controle de la validité de PASSWORD - Mode Developpement
+// Contrôle de la validité de PASSWORD
 function passwordCheck($password) {
   if (empty($password)) {
     $echecPass = '<span style="color:red;">Veuillez remplir votre mot de passe</span>';
@@ -198,6 +198,7 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/mdpnew.php' && isset($_POST['newPasswor
         $_SESSION['newmdp'] = 'success';
         $_SESSION['login'] = 'start';
         header('location: login.php');
+        exit();
       }
     } else if (isset($_POST['echecnewmdp'])) {
       $_SESSION['newmdp'] = 'fail';
@@ -213,6 +214,10 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/mdpnew.php' && isset($_POST['newPasswor
 
   // $urlToken = 'http://127.0.0.1:8080/tpnews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX';
   // $urlNewmdp = 'http://127.0.0.1:8080/tpnews/confirm_mdp.php?mdp=6w6loaoe';
+  
+  if (isset($_SESSION['token']) == 'delay') {
+    $urlToken = $loginCookie->getUrlToken();
+  }
 
 /*---------------------------------------------LOGIN---------------------------------------------------*/
 // Traitement de récupération LOGIN et PASSWORD
@@ -229,6 +234,7 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/login.php' && isset($_POST['username'])
     header('Refresh: 0');
     exit();
   }
+  $newPassordUser = 'http://127.0.0.1:8080/tpnews/confirm_mdp.php?mdp=6w6loaoe';
 
   // Controle de la validité de username - Mode Developpement
   $resUsername = usernameCheck($name, '', '');
@@ -248,7 +254,7 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/login.php' && isset($_POST['username'])
   if ($echecName == '' && $echecPass == '' && $echecCgu == '') {
     if ($loginCookie->login($name, $password)) {
       $_SESSION['login'] = 'success';
-
+      
       // Reléve l'utilisateur "admin" dans le fichier roles.json 
       $rolesAdmin = json_decode(file_get_contents('roles.json'), true);
       $nameRole = $rolesAdmin['Authentification'][0]['username'];

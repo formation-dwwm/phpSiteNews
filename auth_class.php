@@ -144,6 +144,7 @@ class User {
     $this->session_start_time = NULL;
     $this->confirmation_token = false;
     $this->db = $db;
+    // $this->urlToken = 'http://localhost:8080';
   }
 
   /* Traitement de email valide ou unique */
@@ -216,6 +217,9 @@ class User {
 
       $user_id = $db->lastInsertId();
       mail($_POST['email'], 'Confirmation de votre compte', "Afin de valider votre compte merci de cliquer sur ce lien\n\nhttp://localhost:8080/tpnews/confirm_token.php?id=$user_id&token=$token");
+
+      // $urlToken = "n\nhttp://localhost:8080/tpnews/confirm_token.php?id=$user_id&token=$token";
+      // $urlToken = 'http://localhost:8080';
 
     } catch (PDOException $e) {
       /* Exception (erreur SQL) */

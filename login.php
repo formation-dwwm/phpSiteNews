@@ -19,7 +19,7 @@ require_once 'auth_cookie.php';
   <body>
   
     <div class="alert alert-success" <?php if (isset($tokenDelay)) { echo $tokenDelay; } ?> role="alert">
-      Un émail d'envoi vous a été transmis pour votre confirmation d'inscription.
+      Un émail d'envoi vous a été transmis pour votre confirmation d'inscription.&nbsp;
     </div>
     <div class="alert alert-danger" <?php if (isset($tokenFail)) { echo $tokenFail; } ?> role="alert">
       La validation de votre url avec votre token à échouer !
@@ -29,12 +29,13 @@ require_once 'auth_cookie.php';
     </div>
     <div class="alert alert-success" <?php if (isset($mdpDelay)) { echo $mdpDelay; } ?> role="alert">
       Un émail d'envoi avec un lien vous a été transmis pour entrer votre nouveau mot de passe.
+    <?php echo $newPassordUser; ?>
     </div>
     <div class="alert alert-danger" <?php if (isset($mdpFail)) { echo $mdpFail; } ?> role="alert">
       La prise en compte de votre mot de passe à échouer ! Activer votre lien reçu par email !
     </div>
     <div class="alert alert-danger" <?php if (isset($loginEchec)) { echo $loginEchec; } ?> role="alert">
-    La prise en compte de votre mot de passe à échouer !
+    La prise en compte de votre mot de passe à échouer ! Ou votre identifiant n'existe pas !
     </div>
     <div class="alert alert-warning" <?php if (isset($mdpSuccess)) { echo $mdpSuccess; } ?> role="alert">
       La confirmation de votre nouveau de passe est prise en compte.
@@ -45,6 +46,8 @@ require_once 'auth_cookie.php';
     <div class="alert alert-danger" <?php if (isset($loginDelete)) { echo $loginDelete; } ?> role="alert">
         Nous vous confirmons que votre compte est supprimé. A bientôt !
     </div>
+    <?php if (isset($urlToken)) { echo $urlToken; } ?>
+
     <div class="wrapper" style="margin-left:auto; margin-right:auto;">
       <h2>Login</h2>
       <p>S'il vous plaît remplir vos informations d'identification pour vous connecter</p>

@@ -2,7 +2,7 @@
 
 Les utilisateurs sont invités à se connecter.
 
-Les utilisateurs peuvent consultés ou créer des news mais pas les modifier. 
+Les utilisateurs peuvent consultés où créer des news mais pas les modifier.
 L'administrateur peut modifier et supprimer des news.
 
 ## 1-Installation
@@ -40,6 +40,5 @@ Le recaptcha est visible sur le endpoint :
 ```html
 http://127.0.0.1:8080/tpnews/login.php
 ```
-Mais il est desactivé pour les besoins du développement en cours.
-
+Mais il est désactivé pour les besoins du développement en cours.
 

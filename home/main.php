@@ -11,24 +11,23 @@ if (isset($_SERVER['REQUEST_URI'])) {
   $activeCreate = ($_SERVER['REQUEST_URI'] == '/tpnews/home/create.php') ? 'active' : ''; 
 }
 
-/* PAGE PROFIL */
-
-if (isset($_SERVER['REQUEST_URI']) == '/tpnews/home/profil.php') {
-  
-  $res = $loginCookie->get_account($db);
-  // $loginCookie->enabled_account($account_id, $db);
-  // var_dump($res);
-  
-  $account_enabled = ($res['account_enabled'] == '1') ? 'actif' : 'inactif';
-  $account_name = $res['account_name'];
-  $account_email = $res['account_email'];
-  $account_password = $res['account_email'];
-  $confirmed_at = $res['confirmed_at'];
-  $confirmation_token = $res['confirmation_token'];
-
-  $account_confirmed = date('Y-m-d H:i:s');
-  $confirmed_at = $account_confirmed;
-  
+// Vérification de la validité du contenu du titre
+function titreCheck($titre) {
+  if ($titre == '') {
+    $emptyTitre = '<span style="color:red;">Votre news a besoin d\'un titre !</span>';
+  } else {
+    $emptyTitre = '';
+  }
+  return $emptyTitre;
+}
+// Vérification de la validité du contenu du contenu
+function contenuCheck($contenu) {
+  if ($contenu == '') {
+    $emptyContenu = '<span style="color:red;">Votre news a besoin d\'un contenu !</span>';
+  } else {
+    $emptyContenu = '';
+  }
+  return $emptyContenu;
 }
 
 /* PAGE ADMIN && UTILISATEURS */
@@ -52,52 +51,99 @@ $inputTitre = '';
 $inputContenu = '';
 
 // Formulaire d'entrée pour l'admin - articles du sites
-if (!empty($_POST['auteur']) || !empty($_POST['titre']) || !empty($_POST['contenu'])) {
-    // Requêtre d'entrée de l'article dans la base de données
-    if(empty($_SESSION['id']) && isset($_POST['ajouter'])) {
-            $auteur = $_POST['auteur'];
-            $titre = $_POST['titre'];
-            $contenu = $_POST['contenu'];
-            $dateAjout = date('Y-m-d H:i:s');
-            $dateModif = $dateAjout;
-            
-            $sql1 = 'INSERT INTO news (auteur, titre, contenu, dateAjout, dateModif) VALUES (?, ?, ?, ?, ?)';
-            $req1 = $pdo->prepare($sql1);
-            $req1->execute(array($auteur, $titre, $contenu, $dateAjout, $dateModif));
-            // initialisation des données du navigateur
-            unset($_POST);
-            // Regénère l'affiche - Single Page
-            header('Refresh: 0');
-            exit();
-    }
-    // Requête de modification de l'article dans la base de données
-    if (!empty($_SESSION['id']) && isset($_POST['ajouter'])) {
-        $id = $_SESSION['id'];
-        $inputAuteur = $_POST['auteur'];
-        $inputTitre = $_POST['titre'];
-        $inputContenu = $_POST['contenu'];
-        // $dateAjout = $news[$id]->{'dateAjout'};
-        $dateModif = date('Y-m-d H:i:s');
+if (isset($_POST['titre']) && isset($_POST['contenu'])) {
 
-        $sql2 = 'UPDATE news SET auteur=:inputAuteur,titre=:inputTitre,contenu=:inputContenu,dateModif=:dateModif WHERE id=:id;';
-        $req2 = $pdo->prepare($sql2);
-        $req2->execute(array(
-            ':inputAuteur' => $account_name,
-            ':inputTitre' => $inputTitre,
-            ':inputContenu' => $inputContenu,
-            ':dateModif' => $dateModif,
-            ':id' => $id
-        ));
-        // initialisation des données du navigateur
-        $inputAuteur = '';
-        $inputTitre = '';
-        $inputContenu = '';
-        unset($_SESSION['id']);
-        unset($_POST);
-        // Regénère l'affiche - Single Page
-        header('Refresh: 0');
-        exit();
+  // Recherche de l'auteur initial
+  // Auteur désactivé dans le champ input de l'utilisateur
+  $res = $loginCookie->get_account($db);
+  $account_name = $res['account_name'];
+
+  // Requêtre d'entrée de l'article dans la base de données
+  if(empty($_SESSION['id']) && isset($_POST['ajouter'])) {
+    // $auteur = $_POST['auteur'];
+    $auteur = $account_name;
+    $titre = $_POST['titre'];
+    $contenu = $_POST['contenu'];
+    $dateAjout = date('Y-m-d H:i:s');
+    $dateModif = $dateAjout;
+
+    // $emptyTitre = titreCheck($titre);
+    $emptyTitre = titreCheck($titre);
+    $emptyContenu = contenuCheck($contenu);
+
+    if ($emptyTitre == '' && $emptyContenu == '') {
+      // Supprimer toutes les balises HTML et tous les caractères avec une valeur ASCII
+      $newTitre = filter_var($titre, FILTER_SANITIZE_STRING);
+      $newContenu = filter_var($contenu, FILTER_SANITIZE_STRING);
+      
+      // Insertion des données dans la base de donnée
+      $sql1 = 'INSERT INTO news (auteur, titre, contenu, dateAjout, dateModif) VALUES (?, ?, ?, ?, ?)';
+      $req1 = $pdo->prepare($sql1);
+      $req1->execute(array($auteur, $newTitre, $newContenu, $dateAjout, $dateModif));
+      // initialisation des données du navigateur
+      unset($_POST);
+      // Regénère l'affiche - Single Page
+      // header('Refresh: 0');
+      // exit();
     }
+  }
+  // Requête de modification de l'article dans la base de données
+  if (!empty($_SESSION['id']) && isset($_POST['ajouter'])) {
+    $id = $_SESSION['id'];
+    $inputAuteur = $_POST['auteur'];
+    $inputTitre = $_POST['titre'];
+    $inputContenu = $_POST['contenu'];
+    // $dateAjout = $news[$id]->{'dateAjout'};
+    $dateModif = date('Y-m-d H:i:s');
+
+    // Supprimer toutes les balises HTML et tous les caractères avec une valeur ASCII
+    $newInputTitre = filter_var($titre, FILTER_SANITIZE_STRING);
+    $newInputContenu =filter_var($contenu, FILTER_SANITIZE_STRING);
+
+    $sql2 = 'UPDATE news SET auteur=:inputAuteur,titre=:inputTitre,contenu=:inputContenu,dateModif=:dateModif WHERE id=:id;';
+    $req2 = $pdo->prepare($sql2);
+    $req2->execute(array(
+        ':inputAuteur' => $account_name,
+        ':inputTitre' => $newInputTitre,
+        ':inputContenu' => $newInputContenu,
+        ':dateModif' => $dateModif,
+        ':id' => $id
+    ));
+    // initialisation des données du navigateur
+    $inputAuteur = '';
+    $inputTitre = '';
+    $inputContenu = '';
+    unset($_SESSION['id']);
+    unset($_POST);
+    // Regénère l'affiche - Single Page
+    // header('Refresh: 0');
+    // exit();
+  }
+}
+
+/* PAGE PROFIL */
+
+if (isset($_SERVER['REQUEST_URI']) == '/tpnews/home/profil.php') {
+  
+  $res = $loginCookie->get_account($db);
+  // $loginCookie->enabled_account($account_id, $db);
+  // var_dump($res);
+
+  $account_enabled = ($res['account_enabled'] == '1') ? 'actif' : 'inactif';
+  $account_name = $res['account_name'];
+  $account_email = $res['account_email'];
+  $account_password = $res['account_email'];
+  $confirmed_at = $res['confirmed_at'];
+  $confirmation_token = $res['confirmation_token'];
+
+  $account_confirmed = date('Y-m-d H:i:s');
+  $confirmed_at = $account_confirmed;
+
+  // requête toute la base de donnée pour les articles de son utilisateur
+  $req = $pdo->prepare('SELECT id, auteur, titre, contenu, dateAjout, dateModif FROM news WHERE auteur=:account_name ORDER BY dateModif DESC;');
+  $req->execute(array(':account_name' => $account_name));
+  $req->setFetchMode(PDO::FETCH_OBJ);
+  $newsUser = $req->fetchAll();
 }
 
 /* PAGE ADMIN */
@@ -119,6 +165,7 @@ if (!empty($_POST['newId']) && !empty($_POST['modifier'])) {
             }
         }
     }
+    
     unset($_POST);
 }
 // Supprime un article avec son ID
@@ -228,7 +275,6 @@ $newsPage = $req4->fetchAll();
 
 // Détermine un tableau des classes actives pour l'affichage des chiffres
 // en fonction de l'url de page : $current
-
 if ($current > 3) {
   $max = $current - 2;
   $temp = $current;
@@ -284,6 +330,16 @@ for ($m = 0; $m < $currentMax; $m++) {
   }
 }
 // var_dump($arr);
+
+
+// // On voudrait :
+// $paginator = new Paginator($current, $currentMax);
+// $paginator->useConfig([
+//   "maxPages" => 3
+// ]);
+// $paginator->use($classArr);
+
+
 
 
 require_once 'footer.php';
