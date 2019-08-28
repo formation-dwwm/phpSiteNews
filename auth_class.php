@@ -215,11 +215,14 @@ class User {
       $st = $db->prepare($sql);
       $st->execute(array($username, $hash, '1', '1999-01-01', $email, $token));
 
-      $user_id = $db->lastInsertId();
-      mail($_POST['email'], 'Confirmation de votre compte', "Afin de valider votre compte merci de cliquer sur ce lien\n\nhttp://localhost:8080/tpnews/confirm_token.php?id=$user_id&token=$token");
+      $hostUrlSite = 'http://127.0.0.1:8080/phpsitenews';
 
-      // $urlToken = "n\nhttp://localhost:8080/tpnews/confirm_token.php?id=$user_id&token=$token";
+      // $urlToken = "n\nhttp://127.0.0.1:8080/phpsitenews/confirm_token.php?id=$user_id&token=$token";
       // $urlToken = 'http://localhost:8080';
+
+
+      $user_id = $db->lastInsertId();
+      mail($_POST['email'], 'Confirmation de votre compte', "Afin de valider votre compte merci de cliquer sur ce lien\n\n$hostUrlSite/confirm_token.php?id=$user_id&token=$token");
 
     } catch (PDOException $e) {
       /* Exception (erreur SQL) */
@@ -274,10 +277,9 @@ class User {
   // }
 
 
-  public function get_account(&$db) {
+  public function get_account($username, &$db) {
     /* Note: working progress */
 
-    $username = 'cursusdev';
     try {
 
       $sql = 'SELECT account_name,account_password,account_enabled,account_email,confirmed_at,confirmation_token FROM accounts WHERE account_name=:username';

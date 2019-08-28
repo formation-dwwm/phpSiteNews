@@ -4,6 +4,7 @@
 require_once 'header.php';
 require_once 'main.php';
 
+$relUrl = '/phpsitenews';
 
 ?>
 <br />

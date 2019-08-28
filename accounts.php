@@ -5,8 +5,20 @@ session_start();
 
 require_once 'auth_cookie.php';
 
+$host = 'http://127.0.0.1:8080';
+$relUrl = '/phpsitenews';
+
+// $urlToken = 'http://127.0.0.1:8080/phpsitenews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX';
+// $urlNewmdp = 'http://127.0.0.1:8080/phpsitenews/confirm_mdp.php?mdp=6w6loaoe';
+
 // Conditions d'affichages des variables d'alertes avec les sessions
 /* LOGIN cookie*/
+if (!isset($_SESSION['login']) && !isset($_SESSION['token']) && !isset($_SESSION['email']) && !isset($_SESSION['newmdp'])){
+  $_SESSION['login'] = '';
+  $_SESSION['token'] = '';
+  $_SESSION['email'] = '';
+  $_SESSION['newmdp'] = '';
+}
 $displayNone = 'style="display:none;"';
 if (isset($_SESSION['login'])) {
   $loginDelay = ($_SESSION['login'] == 'delay') ? '' : $displayNone;
@@ -40,9 +52,14 @@ if (isset($_SESSION['newmdp'])) {
 } else {
     $_SESSION['newmdp'] = 'start';
 }
+// echo $_SESSION['login'];
+// echo $_SESSION['email'];
+// echo $_SESSION['email'];
+// echo $_SESSION['newmdp'];
+
 /* VISIBILITE recaptcha */
-if (isset($_SESSION['REQUEST_URI']) === '/tpnews/register.php') {
-  $recaptcha = ($_SERVER['HTTP_REFERER'] === 'http://127.0.0.1:8080/tpnews/register.php') ?  '' : $displayNone;
+if (isset($_SESSION['REQUEST_URI']) === $relUrl . '/register.php') {
+  $recaptcha = ($_SERVER['HTTP_REFERER'] === $host . $relUrl . '/register.php') ?  '' : $displayNone;
 }
 
 // Controle de la validité de EMAIL unique - TOKEN de confirmation url
@@ -129,7 +146,7 @@ function passwordCheck($password) {
 
 /*---------------------------------------------EMAIL NEW PASSWORD---------------------------------------------------*/
 // Traitement de rentrer de l'email - Génération du hesh et envoi demande url
-if ($_SERVER['REQUEST_URI'] === '/tpnews/mdpforget.php' && isset($_POST['email'])) {
+if ($_SERVER['REQUEST_URI'] === $relUrl . '/mdpforget.php' && isset($_POST['email'])) {
   $email = $_POST['email'];
   $_SESSION['emailValue'] = $email;
 
@@ -173,7 +190,7 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/mdpforget.php' && isset($_POST['email']
 
 /*---------------------------------------------NEW PASSWORD---------------------------------------------------*/
 // Traitement d'entrer du nouveau PASSWORD après confirmation url
-if ($_SERVER['REQUEST_URI'] === '/tpnews/mdpnew.php' && isset($_POST['newPassword']) && isset($_POST['repeatPassword'])) {
+if ($_SERVER['REQUEST_URI'] === $relUrl . '/mdpnew.php' && isset($_POST['newPassword']) && isset($_POST['repeatPassword'])) {
   // echo $_SESSION['emailValue'];
   if (isset($_SESSION['emailValue']) && isset($_SESSION['mdp']) == '6w6loaoe') {
     $newPassword = $_POST['newPassword'];
@@ -212,29 +229,22 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/mdpnew.php' && isset($_POST['newPasswor
   }
 }
 
-  // $urlToken = 'http://127.0.0.1:8080/tpnews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX';
-  // $urlNewmdp = 'http://127.0.0.1:8080/tpnews/confirm_mdp.php?mdp=6w6loaoe';
-  
   if (isset($_SESSION['token']) == 'delay') {
     $urlToken = $loginCookie->getUrlToken();
   }
 
 /*---------------------------------------------LOGIN---------------------------------------------------*/
 // Traitement de récupération LOGIN et PASSWORD
-if ($_SERVER['REQUEST_URI'] === '/tpnews/login.php' && isset($_POST['username']) && isset($_POST['password']) && isset($_POST['cgu_accept'])) {
+if ($_SERVER['REQUEST_URI'] === $relUrl . '/login.php' && isset($_POST['username']) && isset($_POST['password'])) {
   $name = $_POST['username'];
   $password = $_POST['password'];
-  $cgu_accept = $_POST['cgu_accept'];
   $_SESSION['newmdp'] = 'start';
   $_SESSION['token'] = 'start';
   $_SESSION['login'] = 'start';
   $_SESSION['email'] = 'start';
 
-  if ($_SESSION['newmdp'] != 'start' || $_SESSION['token'] != 'start' || $_SESSION['login'] != 'start' || $_SESSION['email'] != 'start'){
-    header('Refresh: 0');
-    exit();
-  }
-  $newPassordUser = 'http://127.0.0.1:8080/tpnews/confirm_mdp.php?mdp=6w6loaoe';
+
+  $newPassordUser = $host . $relUrl . '/confirm_mdp.php?mdp=6w6loaoe';
 
   // Controle de la validité de username - Mode Developpement
   $resUsername = usernameCheck($name, '', '');
@@ -244,17 +254,12 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/login.php' && isset($_POST['username'])
   $resPass = passwordCheck($password);
   $echecPass = $resPass['echecPass'];
 
-  // Controle de la validité de la mentions légale
-  if ($cgu_accept == '0') {
-    $echecCgu = '<span style="color:red;display:inline-block;">Vous n\'êtes pas d\'accord avec les conditions de service</span>';
-  } else {
-    $echecCgu = '';
-  }
   // Réalisation du role de l'administrateur - HOME PAGE connect SUCCESS
-  if ($echecName == '' && $echecPass == '' && $echecCgu == '') {
+  if ($echecName == '' && $echecPass == '') {
     if ($loginCookie->login($name, $password)) {
       $_SESSION['login'] = 'success';
-      
+      echo $_SERVER['REQUEST_URI'];
+
       // Reléve l'utilisateur "admin" dans le fichier roles.json 
       $rolesAdmin = json_decode(file_get_contents('roles.json'), true);
       $nameRole = $rolesAdmin['Authentification'][0]['username'];
@@ -266,22 +271,27 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/login.php' && isset($_POST['username'])
       } else {
           unset($_SESSION['role']);
       };
-      header('location: home/accueil.php');
+      $_SESSION['username'] = $name;
+      $_SESSION['password'] = $password;
+
+      $loginCookie->cookie_login();
+      header('location: ' . $relUrl . '/home/accueil.php');
       exit();
     } else {
       $_SESSION['login'] = 'echec';
-      header('Refresh: 0');
-      exit();
+      // header('Refresh: 0');
+      // exit();
     }
   }
 }
 
 /*---------------------------------------------REGISTER---------------------------------------------------*/
 // Traitement d'entrer Unique de EMAIL, USERNAME et PASSWORD
-if ($_SERVER['REQUEST_URI'] === '/tpnews/register.php' && isset($_POST['username']) && isset($_POST['password']) && isset($_POST['email'])) {
+if ($_SERVER['REQUEST_URI'] === $relUrl . '/register.php' && isset($_POST['username']) && isset($_POST['password']) && isset($_POST['email']) && isset($_POST['cgu_accept'])) {
   $email = $_POST['email'];
   $name = $_POST['username'];
   $password = $_POST['password'];
+  $cgu_accept = $_POST['cgu_accept'];
   $_SESSION['newmdp'] = 'start';
 
   // Controle de la validité de EMAIL unique - TOKEN de confirmation url
@@ -307,7 +317,14 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/register.php' && isset($_POST['username
   $resPass = passwordCheck($password);
   $echecPass = $resPass['echecPass'];
 
-  if ($resExistBool == false && $resUserExist == false && $echecPass == '') {
+  // Controle de la validité de la mentions légale
+  if ($cgu_accept == '0') {
+    $echecCgu = '<span style="color:red;display:inline-block;">Vous n\'êtes pas d\'accord avec les conditions de service</span>';
+  } else {
+    $echecCgu = '';
+  }
+
+  if ($resExistBool == false && $resUserExist == false && $echecPass == '' && $echecCgu == '') {
     // TOKEN de confirmation url
     if ($loginCookie->add_account($name, $password, $email, $db)) {
       $_SESSION['token'] = 'delay';
@@ -323,6 +340,8 @@ if ($_SERVER['REQUEST_URI'] === '/tpnews/register.php' && isset($_POST['username
 if(isset($_POST['close'])) {
   $_SESSION['login'] = 'close';
   $loginCookie->logout($close_all_sessions = true);
+  unset($_SESSION['username']);
+  unset($_SESSION['password']);
   header('location: login.php');
   exit();
 }
@@ -335,6 +354,8 @@ if(isset($_POST['delete'])) {
   $loginCookie->delete_account($account_id, $db);
   $loginCookie->logout($close_all_sessions = true);
   $_SESSION['login'] = 'delete';
+  unset($_SESSION['username']);
+  unset($_SESSION['password']);
   header('location: login.php');
   exit();
 }

@@ -3,6 +3,7 @@
 require_once 'header.php';
 require_once 'main.php';
 
+$relUrl = '/phpsitenews';
 
 ?>
 <h5 style="padding:10px;margin-left:0;">Details de nouvelle :</h5>

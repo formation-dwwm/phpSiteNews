@@ -6,7 +6,7 @@ header('content-type: text/css');
 // contrôle de mise en cahce
 header('Cache-Control: max-age=3600, must-revalidate');
 
-session_start();
+
 ?>
 body{
   font: 14px sans-serif;

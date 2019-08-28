@@ -2,6 +2,7 @@
 
 require_once 'auth_cookie.php';
 
+$hostUrlSite = 'http://127.0.0.1:8080/phpsitenews'
 
 ?>
 <!DOCTYPE html>
@@ -29,7 +30,7 @@ require_once 'auth_cookie.php';
     </div>
     <div class="alert alert-success" <?php if (isset($mdpDelay)) { echo $mdpDelay; } ?> role="alert">
       Un émail d'envoi avec un lien vous a été transmis pour entrer votre nouveau mot de passe.
-    <?php echo $newPassordUser; ?>
+    <?php if (isset($newPassordUser)) { echo $newPassordUser; } ?>
     </div>
     <div class="alert alert-danger" <?php if (isset($mdpFail)) { echo $mdpFail; } ?> role="alert">
       La prise en compte de votre mot de passe à échouer ! Activer votre lien reçu par email !
@@ -46,7 +47,7 @@ require_once 'auth_cookie.php';
     <div class="alert alert-danger" <?php if (isset($loginDelete)) { echo $loginDelete; } ?> role="alert">
         Nous vous confirmons que votre compte est supprimé. A bientôt !
     </div>
-    <?php if (isset($urlToken)) { echo $urlToken; } ?>
+    <!-- <?php if (isset($urlToken)) { echo $urlToken; } ?> -->
 
     <div class="wrapper" style="margin-left:auto; margin-right:auto;">
       <h2>Login</h2>
@@ -64,11 +65,6 @@ require_once 'auth_cookie.php';
           <?php if (isset($echecPass)) { echo $echecPass; } ?>
           <span class="help-block"></span>
           <a href="mdpforget.php" style="font-size:12px;">Mot de Passe Oublié ?</a>
-        </div>
-        <div class="form-group">
-        <input type="hidden" name="cgu_accept" value="0" />
-        <input type="checkbox" name="cgu_accept" id="cgu" /><label for="cgu" style="display:inline;margin-left:5px;">J'accepte les <a href="http://127.0.0.1:8080/tpnews/CGU.pdf">Conditions Générales d'Utilisation</a></label>
-          <?php if (isset($echecCgu)) { echo $echecCgu; } ?>
         </div>
         <div class="form-group">
           <input type="submit" class="btn btn-primary" value="S'identifier" />

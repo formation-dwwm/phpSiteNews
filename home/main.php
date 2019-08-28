@@ -3,12 +3,23 @@
 require_once 'header.php';
 require_once 'pdo.php';
 
+$relUrl = '/phpsitenews';
+
+// if (!isset($_SESSION['username']) && !isset($_SESSION['password'])) {
+//   header('WWW-Authenticate: Basic realm="My Realm"');
+//   header('HTTP/1.0 401 Unauthorized');
+//   header('location: ' . $relUrl . '/login.php');
+//   echo 'Partie du site inutilisable';
+//   header('location: ' . $relUrl . '/login.php');
+//   exit;
+// }
+
 /* COMMUNS UTILISATEURS */
 if (isset($_SERVER['REQUEST_URI'])) {
-  $activeAccueil = ($_SERVER['REQUEST_URI'] == '/tpnews/home/accueil.php') ? 'active' : '';
-  $activeProfil = ($_SERVER['REQUEST_URI'] == '/tpnews/home/edit.php') ? 'active' : '';
-  $activeAdmin = ($_SERVER['REQUEST_URI'] == '/tpnews/admin/admin.php') ? 'active' : '';
-  $activeCreate = ($_SERVER['REQUEST_URI'] == '/tpnews/home/create.php') ? 'active' : ''; 
+  $activeAccueil = ($_SERVER['REQUEST_URI'] == $relUrl . '/home/accueil.php') ? 'active' : '';
+  $activeProfil = ($_SERVER['REQUEST_URI'] == $relUrl . '/home/edit.php') ? 'active' : '';
+  $activeAdmin = ($_SERVER['REQUEST_URI'] == $relUrl . '/admin/admin.php') ? 'active' : '';
+  $activeCreate = ($_SERVER['REQUEST_URI'] == $relUrl . '/home/create.php') ? 'active' : ''; 
 }
 
 // Vérification de la validité du contenu du titre
@@ -55,7 +66,8 @@ if (isset($_POST['titre']) && isset($_POST['contenu'])) {
 
   // Recherche de l'auteur initial
   // Auteur désactivé dans le champ input de l'utilisateur
-  $res = $loginCookie->get_account($db);
+  $username = $_SESSION['username'];
+  $res = $loginCookie->get_account($username, $db);    // manque argument username
   $account_name = $res['account_name'];
 
   // Requêtre d'entrée de l'article dans la base de données
@@ -90,15 +102,16 @@ if (isset($_POST['titre']) && isset($_POST['contenu'])) {
   // Requête de modification de l'article dans la base de données
   if (!empty($_SESSION['id']) && isset($_POST['ajouter'])) {
     $id = $_SESSION['id'];
-    $inputAuteur = $_POST['auteur'];
+    // $inputAuteur = $_POST['auteur'];
+    $inputAuteur = $account_name;
     $inputTitre = $_POST['titre'];
     $inputContenu = $_POST['contenu'];
     // $dateAjout = $news[$id]->{'dateAjout'};
     $dateModif = date('Y-m-d H:i:s');
 
     // Supprimer toutes les balises HTML et tous les caractères avec une valeur ASCII
-    $newInputTitre = filter_var($titre, FILTER_SANITIZE_STRING);
-    $newInputContenu =filter_var($contenu, FILTER_SANITIZE_STRING);
+    $newInputTitre = filter_var($inputTitre, FILTER_SANITIZE_STRING);
+    $newInputContenu =filter_var($inputContenu, FILTER_SANITIZE_STRING);
 
     $sql2 = 'UPDATE news SET auteur=:inputAuteur,titre=:inputTitre,contenu=:inputContenu,dateModif=:dateModif WHERE id=:id;';
     $req2 = $pdo->prepare($sql2);
@@ -123,9 +136,13 @@ if (isset($_POST['titre']) && isset($_POST['contenu'])) {
 
 /* PAGE PROFIL */
 
-if (isset($_SERVER['REQUEST_URI']) == '/tpnews/home/profil.php') {
-  
-  $res = $loginCookie->get_account($db);
+if (isset($_SERVER['REQUEST_URI']) == $relUrl . '/home/profil.php') {
+
+  if (isset($_SESSION['username'])) {
+    $_SESSION['username'] = '';
+  } 
+  $username = $_SESSION['username'];
+  $res = $loginCookie->get_account($username, $db);
   // $loginCookie->enabled_account($account_id, $db);
   // var_dump($res);
 

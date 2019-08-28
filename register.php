@@ -43,6 +43,11 @@ require_once 'auth_cookie.php';
         <div class="form-group">
             <input type="submit" class="btn btn-primary" value="Envoyer" />
         </div>
+        <div class="form-group">
+        <input type="hidden" name="cgu_accept" value="0" />
+        <input type="checkbox" name="cgu_accept" id="cgu" /><label for="cgu" style="display:inline;margin-left:5px;">J'accepte les <a href="<?php if(isset($hostUrlSite)) { echo $hostUrlSite; } ?>/CGU.pdf">Conditions Générales d'Utilisation</a></label>
+          <?php if (isset($echecCgu)) { echo $echecCgu; } ?>
+        </div>
         <p>Vous avez déjà un compte? <a href="login.php">Connectez-vous ici</a>.</p>
       </form>
     </div>
