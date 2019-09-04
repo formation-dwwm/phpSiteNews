@@ -215,11 +215,7 @@ class User {
       $st = $db->prepare($sql);
       $st->execute(array($username, $hash, '1', '1999-01-01', $email, $token));
 
-      $hostUrlSite = 'http://127.0.0.1:8080/phpsitenews';
-
-      // $urlToken = "n\nhttp://127.0.0.1:8080/phpsitenews/confirm_token.php?id=$user_id&token=$token";
-      // $urlToken = 'http://localhost:8080';
-
+      $hostUrlSite = 'http://127.0.0.1:8080/phpSiteNews';
 
       $user_id = $db->lastInsertId();
       mail($_POST['email'], 'Confirmation de votre compte', "Afin de valider votre compte merci de cliquer sur ce lien\n\n$hostUrlSite/confirm_token.php?id=$user_id&token=$token");
@@ -287,13 +283,11 @@ class User {
       $st->execute([':username' => $username]);
       $res = $st->fetch(PDO::FETCH_ASSOC);
 
-      return $res;
-
     } catch (PDOException $e) {
       echo $e->getMessage();
       return false;
     }
-    return true;
+    return $res;
   }
 
   /* Éditer un utilisateur existant; les arguments définis sur NULL ne sont pas modifiés */
@@ -364,6 +358,7 @@ class User {
       //   $st->execute(array($name, '2000-01-01', 'true'));
       $res = $st->fetch(PDO::FETCH_ASSOC);
 
+
       /* Si le nom d'utilisateur existe et est activé, nous vérifions le mot de passe */
       if (password_verify($password, $res['account_password']) && $res['confirmation_token'] == 'true') {
         /* Log in ok, we retrieve the account data */
@@ -393,15 +388,15 @@ class User {
   /* Ancien mot de passe remplacé */
   public function newPassword($email, $newPassword) {
     try {
-          /* Mot de passe hash */
-          $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+      /* Mot de passe hash */
+      $hash = password_hash($newPassword, PASSWORD_DEFAULT);
 
-          $sql = 'UPDATE accounts SET account_password=:account_password WHERE account_email=:account_email;';
-          $st = $this->db->prepare($sql);
-          $st->execute(array(
-            ':account_email' => $email,
-            ':account_password' => $hash
-          ));
+      $sql = 'UPDATE accounts SET account_password=:account_password WHERE account_email=:account_email;';
+      $st = $this->db->prepare($sql);
+      $st->execute(array(
+        ':account_email' => $email,
+        ':account_password' => $hash
+      ));
 
     } catch (PDOException $e) {
       echo $e->getMessage();

@@ -3,19 +3,17 @@
 require_once '../home/header.php';
 require_once '../home/main.php';
 
+$relUrl = '/phpSiteNews';
 
 if (isset($_COOKIE['auth_cookie']) && isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
     // echo 'Tu est connecté en tant qu\'administrateur';
 } else {
-  header('Location: /tpnews/login.php');
+  header('Location: ' . $relUrl . '/login.php');
 }
 
 ?>
   <br />
   <form method="POST" style="width:700px;margin-left:auto;margin-right:auto">
-      <!--<div class="form-group">
-          Auteur :<input type="text" class="form-control" name="auteur" value="<?php echo $account_name; ?>" disabled />
-      </div> -->
       <div class="form-group">
           Titre :<input type="text" class="form-control" name="titre" value="<?php echo $inputTitre; ?>" />
           <?php if (isset($emptyTitre)) { echo $emptyTitre; } ?>

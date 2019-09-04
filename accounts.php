@@ -4,12 +4,13 @@
 session_start();
 
 require_once 'auth_cookie.php';
+require_once 'env.php';
 
 $host = 'http://127.0.0.1:8080';
-$relUrl = '/phpsitenews';
+$relUrl = '/phpSiteNews';
 
-// $urlToken = 'http://127.0.0.1:8080/phpsitenews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX';
-// $urlNewmdp = 'http://127.0.0.1:8080/phpsitenews/confirm_mdp.php?mdp=6w6loaoe';
+// $urlToken = 'http://127.0.0.1:8080/phpSiteNews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX';
+// $urlNewmdp = 'http://127.0.0.1:8080/phpSiteNews/confirm_mdp.php?mdp=6w6loaoe';
 
 // Conditions d'affichages des variables d'alertes avec les sessions
 /* LOGIN cookie*/
@@ -20,6 +21,7 @@ if (!isset($_SESSION['login']) && !isset($_SESSION['token']) && !isset($_SESSION
   $_SESSION['newmdp'] = '';
 }
 $displayNone = 'style="display:none;"';
+/* LOGIN valide */
 if (isset($_SESSION['login'])) {
   $loginDelay = ($_SESSION['login'] == 'delay') ? '' : $displayNone;
   $loginSuccess = ($_SESSION['login'] == 'success') ? '' : $displayNone;
@@ -52,13 +54,9 @@ if (isset($_SESSION['newmdp'])) {
 } else {
     $_SESSION['newmdp'] = 'start';
 }
-// echo $_SESSION['login'];
-// echo $_SESSION['email'];
-// echo $_SESSION['email'];
-// echo $_SESSION['newmdp'];
 
 /* VISIBILITE recaptcha */
-if (isset($_SESSION['REQUEST_URI']) === $relUrl . '/register.php') {
+if (isset($_SERVER['REQUEST_URI']) === $relUrl . '/register.php') {
   $recaptcha = ($_SERVER['HTTP_REFERER'] === $host . $relUrl . '/register.php') ?  '' : $displayNone;
 }
 
@@ -69,18 +67,18 @@ function emailCheck($email, $key, $bool) {
     $echecEmail = '<span style="color:red;">Veuillez remplir votre email</span>';
     $emailExist = '';
   } else if (!empty($email)) {
-    $newEmail = filter_var($email, FILTER_SANITIZE_EMAIL);
       $echecEmail = '<span style="color:red;">Email invalide</span>';
       $emailExist = '';
-    if (filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-      $echecEmail = '';
-    } else if ($bool === true && $key == 'exist') {
+    if ($bool === true && $key == 'exist') {
+        $echecEmail = '';
         $emailExist = '<span style="color:blue;">Votre email existe déjà !</span>';
         // $emailExist = '';              // Possibilité d'un echec silencieux avec fail sur confirm par url
     } else if ($bool === false && $key == 'valid') {
+      $echecEmail = '';
       $emailExist = '<span style="color:blue;">Votre email n\'existe pas !</span>';
       // $emailExist = '';              // Possibilité d'un echec silencieux avec fail sur confirm par url
     } else {
+      $echecEmail = '';
       $emailExist = '';
     }
   }
@@ -166,7 +164,7 @@ if ($_SERVER['REQUEST_URI'] === $relUrl . '/mdpforget.php' && isset($_POST['emai
   // Controle de la validité de EMAIL unique - TOKEN de confirmation url
   if (empty($email)) {
     $resEmail = emailCheck($email, '', '');
-    $resExistBool = false;
+    $resValidBool = false;
   } else {
     $resValid = $loginCookie->emailExist($email, $db);
     $resValidBool = $resValid['exist'];
@@ -174,6 +172,9 @@ if ($_SERVER['REQUEST_URI'] === $relUrl . '/mdpforget.php' && isset($_POST['emai
   }
   $echecEmail = $resEmail['echecEmail'];
   $emailExist = $resEmail['emailExist'];
+
+  // $newEmail = filter_var($email, FILTER_SANITIZE_EMAIL);
+  // $checkEmail = filter_var($newEmail, FILTER_VALIDATE_EMAIL);
 
   if ($resValidBool == true) {
     // $mdpTempo = chaine_aleatoire(8);
@@ -243,7 +244,6 @@ if ($_SERVER['REQUEST_URI'] === $relUrl . '/login.php' && isset($_POST['username
   $_SESSION['login'] = 'start';
   $_SESSION['email'] = 'start';
 
-
   $newPassordUser = $host . $relUrl . '/confirm_mdp.php?mdp=6w6loaoe';
 
   // Controle de la validité de username - Mode Developpement
@@ -256,10 +256,12 @@ if ($_SERVER['REQUEST_URI'] === $relUrl . '/login.php' && isset($_POST['username
 
   // Réalisation du role de l'administrateur - HOME PAGE connect SUCCESS
   if ($echecName == '' && $echecPass == '') {
+    
+    $loginCookie->cookie_login();
+    
     if ($loginCookie->login($name, $password)) {
-      $_SESSION['login'] = 'success';
-      echo $_SERVER['REQUEST_URI'];
-
+      $_SESSION['username'] = $name;
+      $_SESSION['password'] = $password;
       // Reléve l'utilisateur "admin" dans le fichier roles.json 
       $rolesAdmin = json_decode(file_get_contents('roles.json'), true);
       $nameRole = $rolesAdmin['Authentification'][0]['username'];
@@ -271,16 +273,10 @@ if ($_SERVER['REQUEST_URI'] === $relUrl . '/login.php' && isset($_POST['username
       } else {
           unset($_SESSION['role']);
       };
-      $_SESSION['username'] = $name;
-      $_SESSION['password'] = $password;
-
-      $loginCookie->cookie_login();
       header('location: ' . $relUrl . '/home/accueil.php');
       exit();
     } else {
       $_SESSION['login'] = 'echec';
-      // header('Refresh: 0');
-      // exit();
     }
   }
 }
@@ -362,9 +358,8 @@ if(isset($_POST['delete'])) {
 
 // Capcha GOOGLE - INACTIF pour le développement
 if(isset($_POST['g-recaptcha-response']) && !empty($_POST['g-recaptcha-response'])) {
-  $secret = '6LfmR68UAAAAABBwovzPj8qj2IBBE6Pz986FTT5C';
-  $verifyResponse = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret='.$secret.'&response='.$_POST['g-recaptcha-response']);
-
+  $secretkey = Env::get_secret();
+  $verifyResponse = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=' . $secretkey . '&response='.$_POST['g-recaptcha-response']);
   $responseData = json_decode($verifyResponse);
   if($responseData->success) {
       $succMsg = 'Your contact request have submitted successfully.';

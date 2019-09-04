@@ -10,7 +10,7 @@ L'administrateur peut modifier et supprimer des news.
 Langage en vanilla PHP 7.3.
 Les bases de données sont fournies: mySQL 5.7
   - phpauth.sql
-  - tpnews
+  - tpnews.sql
 
 Le site fonctionne sur WampServer avec les bases de données installés sur votre machine.
 
@@ -23,7 +23,7 @@ Un fichier JSON vous propose un login administrateur et utilisateur.
 Work In Progress : Visualisation de l'url dans le navigateur.
 L'URL type de confirmation d'email est de type :
 ```html
-http://127.0.0.1:8080/tpnews/confirm_token.php?id=4&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX
+http://127.0.0.1:8080/phpSiteNews/confirm_token.php?id=4&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX
 ```
 Après vous êtes enregistrer, vous devrez récépérer votre id utilisateur et votre token depuis la base de données pour réaliser l'url de confirmation de token avec votre base de données
 
@@ -31,14 +31,14 @@ Après vous êtes enregistrer, vous devrez récépérer votre id utilisateur et 
 Work In Progress : Visualisation de l'url dans le navigateur.
 L'URL type de demande de changement de mot de passe est de type :
 ```html
-http://127.0.0.1:8080/tpnews/confirm_mdp.php?mdp=6w6loaoe
+http://127.0.0.1:8080/phpSiteNews/confirm_mdp.php?mdp=6w6loaoe
 ```
 La génération du code est fixe pour url de confirmation de changement de mot de passe.
 
 ### c.recaptcha
 Le recaptcha est visible sur le endpoint :
 ```html
-http://127.0.0.1:8080/tpnews/login.php
+http://127.0.0.1:8080/phpSiteNews/login.php
 ```
 Mais il est désactivé pour les besoins du développement en cours.
 

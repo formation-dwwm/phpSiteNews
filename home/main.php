@@ -3,16 +3,7 @@
 require_once 'header.php';
 require_once 'pdo.php';
 
-$relUrl = '/phpsitenews';
-
-// if (!isset($_SESSION['username']) && !isset($_SESSION['password'])) {
-//   header('WWW-Authenticate: Basic realm="My Realm"');
-//   header('HTTP/1.0 401 Unauthorized');
-//   header('location: ' . $relUrl . '/login.php');
-//   echo 'Partie du site inutilisable';
-//   header('location: ' . $relUrl . '/login.php');
-//   exit;
-// }
+$relUrl = '/phpSiteNews';
 
 /* COMMUNS UTILISATEURS */
 if (isset($_SERVER['REQUEST_URI'])) {
@@ -22,25 +13,6 @@ if (isset($_SERVER['REQUEST_URI'])) {
   $activeCreate = ($_SERVER['REQUEST_URI'] == $relUrl . '/home/create.php') ? 'active' : ''; 
 }
 
-// Vérification de la validité du contenu du titre
-function titreCheck($titre) {
-  if ($titre == '') {
-    $emptyTitre = '<span style="color:red;">Votre news a besoin d\'un titre !</span>';
-  } else {
-    $emptyTitre = '';
-  }
-  return $emptyTitre;
-}
-// Vérification de la validité du contenu du contenu
-function contenuCheck($contenu) {
-  if ($contenu == '') {
-    $emptyContenu = '<span style="color:red;">Votre news a besoin d\'un contenu !</span>';
-  } else {
-    $emptyContenu = '';
-  }
-  return $emptyContenu;
-}
-
 /* PAGE ADMIN && UTILISATEURS */
 
 // requête toute la base de donnée pour les actions modifier et supprimer
@@ -48,7 +20,6 @@ $req = $pdo->prepare('SELECT id, auteur, titre, contenu, dateAjout, dateModif FR
 $req->execute();
 $req->setFetchMode(PDO::FETCH_OBJ);
 $news = $req->fetchAll();
-// var_dump($news);
 
 // requête la base de données pour comptabilisé le nombres d'entrée (table)
 $countRows = $pdo->query('SELECT COUNT(*) FROM news;');
@@ -64,59 +35,54 @@ $inputContenu = '';
 // Formulaire d'entrée pour l'admin - articles du sites
 if (isset($_POST['titre']) && isset($_POST['contenu'])) {
 
-  // Recherche de l'auteur initial
-  // Auteur désactivé dans le champ input de l'utilisateur
-  $username = $_SESSION['username'];
-  $res = $loginCookie->get_account($username, $db);    // manque argument username
-  $account_name = $res['account_name'];
-
   // Requêtre d'entrée de l'article dans la base de données
   if(empty($_SESSION['id']) && isset($_POST['ajouter'])) {
-    // $auteur = $_POST['auteur'];
-    $auteur = $account_name;
+    $auteur = $_SESSION['username'];
     $titre = $_POST['titre'];
     $contenu = $_POST['contenu'];
     $dateAjout = date('Y-m-d H:i:s');
     $dateModif = $dateAjout;
 
-    // $emptyTitre = titreCheck($titre);
-    $emptyTitre = titreCheck($titre);
-    $emptyContenu = contenuCheck($contenu);
+    /* Vérifie le contenu non vide */
+    if ($titre == '') {
+      $emptyTitre = '<span style="color:red;">Votre news a besoin d\'un titre !</span>';
+    }
+    if ($contenu == '') {
+      $emptyContenu = '<span style="color:red;">Votre news a besoin d\'un contenu !</span>';
+    }
+    $checkTitre = $titre;
+    $checkContenu = $contenu;
 
-    if ($emptyTitre == '' && $emptyContenu == '') {
+    if ($checkTitre != '' && $checkContenu != '' && !empty($auteur)) {
       // Supprimer toutes les balises HTML et tous les caractères avec une valeur ASCII
       $newTitre = filter_var($titre, FILTER_SANITIZE_STRING);
       $newContenu = filter_var($contenu, FILTER_SANITIZE_STRING);
-      
+
       // Insertion des données dans la base de donnée
       $sql1 = 'INSERT INTO news (auteur, titre, contenu, dateAjout, dateModif) VALUES (?, ?, ?, ?, ?)';
       $req1 = $pdo->prepare($sql1);
       $req1->execute(array($auteur, $newTitre, $newContenu, $dateAjout, $dateModif));
       // initialisation des données du navigateur
       unset($_POST);
-      // Regénère l'affiche - Single Page
-      // header('Refresh: 0');
-      // exit();
     }
+
   }
   // Requête de modification de l'article dans la base de données
   if (!empty($_SESSION['id']) && isset($_POST['ajouter'])) {
     $id = $_SESSION['id'];
-    // $inputAuteur = $_POST['auteur'];
-    $inputAuteur = $account_name;
+    $inputAuteur = $_SESSION['username'];
     $inputTitre = $_POST['titre'];
     $inputContenu = $_POST['contenu'];
-    // $dateAjout = $news[$id]->{'dateAjout'};
     $dateModif = date('Y-m-d H:i:s');
 
     // Supprimer toutes les balises HTML et tous les caractères avec une valeur ASCII
     $newInputTitre = filter_var($inputTitre, FILTER_SANITIZE_STRING);
-    $newInputContenu =filter_var($inputContenu, FILTER_SANITIZE_STRING);
+    $newInputContenu = filter_var($inputContenu, FILTER_SANITIZE_STRING);
 
     $sql2 = 'UPDATE news SET auteur=:inputAuteur,titre=:inputTitre,contenu=:inputContenu,dateModif=:dateModif WHERE id=:id;';
     $req2 = $pdo->prepare($sql2);
     $req2->execute(array(
-        ':inputAuteur' => $account_name,
+        ':inputAuteur' => $inputAuteur,
         ':inputTitre' => $newInputTitre,
         ':inputContenu' => $newInputContenu,
         ':dateModif' => $dateModif,
@@ -128,9 +94,6 @@ if (isset($_POST['titre']) && isset($_POST['contenu'])) {
     $inputContenu = '';
     unset($_SESSION['id']);
     unset($_POST);
-    // Regénère l'affiche - Single Page
-    // header('Refresh: 0');
-    // exit();
   }
 }
 
@@ -138,21 +101,16 @@ if (isset($_POST['titre']) && isset($_POST['contenu'])) {
 
 if (isset($_SERVER['REQUEST_URI']) == $relUrl . '/home/profil.php') {
 
-  if (isset($_SESSION['username'])) {
-    $_SESSION['username'] = '';
-  } 
   $username = $_SESSION['username'];
+  // Obtient les informations du profil de l'utilisateur */
   $res = $loginCookie->get_account($username, $db);
   // $loginCookie->enabled_account($account_id, $db);
-  // var_dump($res);
-
+  
   $account_enabled = ($res['account_enabled'] == '1') ? 'actif' : 'inactif';
-  $account_name = $res['account_name'];
+  $account_name = $_SESSION['username'];
   $account_email = $res['account_email'];
-  $account_password = $res['account_email'];
   $confirmed_at = $res['confirmed_at'];
   $confirmation_token = $res['confirmation_token'];
-
   $account_confirmed = date('Y-m-d H:i:s');
   $confirmed_at = $account_confirmed;
 
@@ -212,6 +170,7 @@ if (isset($_POST['vider'])) {
 }
 
 /* PAGE ACCEUIL */
+
 // limite le texte du contenu de l'article - 190 max
 function debutTexte($textData, $long) {
     if (strlen ($textData) <= $long) {
@@ -314,7 +273,6 @@ for ($n = $max; $n <= $temp; $n++) {
     'span' => $span
   ];
 }
-// var_dump($arr);
 
 // Détermine un tableau des classes actives pour l'affichage des PREV et NEXT
 // en fonction de l'url de page : $current
@@ -346,18 +304,6 @@ for ($m = 0; $m < $currentMax; $m++) {
     }
   }
 }
-// var_dump($arr);
-
-
-// // On voudrait :
-// $paginator = new Paginator($current, $currentMax);
-// $paginator->useConfig([
-//   "maxPages" => 3
-// ]);
-// $paginator->use($classArr);
-
-
-
 
 require_once 'footer.php';
 

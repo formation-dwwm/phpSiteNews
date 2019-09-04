@@ -2,7 +2,7 @@
 
 require_once 'auth_cookie.php';
 
-$hostUrlSite = 'http://127.0.0.1:8080/phpsitenews'
+$hostUrlSite = 'http://127.0.0.1:8080/phpSiteNews'
 
 ?>
 <!DOCTYPE html>

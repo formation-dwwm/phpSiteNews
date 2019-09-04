@@ -1,0 +1,4 @@
+root
+.vscode
+/screenshot/*
+.env

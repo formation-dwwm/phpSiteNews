@@ -23,5 +23,4 @@ if($userAuth && $userAuth['account_token'] == $token){
     header('location: login.php');
 }
 
-// Se rendre dans phpMyAdmin pour connaitre les infos
-// http://127.0.0.1:8080/phpsitenews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX
+// http://127.0.0.1:8080/phpSiteNews/confirm_token.php?id=44&token=PcZKkp8GEqcbAwcZFNhxwKcgw2jjY78V6nZoMAlyzJ18QrQuNvHHCHPxmMgX
